@@ -1,0 +1,316 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize a4paper
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Final Project
+\end_layout
+
+\begin_layout Author
+Corso P2P System & Blockchain 
+\end_layout
+
+\begin_layout Date
+Davide Morucci - mat.
+ 548058
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+What is presented below is the Dapp implementation of the Try Lottery smart
+ contract, implemented for the final project of the P2P System and Blockchain
+ course.
+\end_layout
+
+\begin_layout Subsection
+General Structure
+\end_layout
+
+\begin_layout Standard
+The Dapp developed basically consists of three different interfaces that
+ are used to manage all the tasks provided by the lottery.
+ In particular, these three interfaces bear the name of 
+\shape italic
+Home
+\shape default
+, 
+\shape italic
+Tickets
+\shape default
+ e 
+\shape italic
+Manager
+\shape default
+.
+\end_layout
+
+\begin_layout Subsubsection
+Home
+\end_layout
+
+\begin_layout Standard
+The 
+\series bold
+Home
+\series default
+ page is the main view of the DApp, that is used to present the application
+ to the users, giving some usefull information about the lottery.
+ In this page we can see the ticket price for the current lottery and a
+ link the will bring the user to Account page, where tickets can be bought.
+ Finally, this is the page where the extracted numbers will appear when
+ the lottery operator calls the 
+\series bold
+drawNumbers
+\series default
+ function: such numbers will be visibible after the extraction and until
+ a new round or a new lottery is started.
+\end_layout
+
+\begin_layout Standard
+INSERIRE SCREEN DELLA HOME PAGE DELLA DAPP
+\end_layout
+
+\begin_layout Subsubsection
+Tickets
+\end_layout
+
+\begin_layout Standard
+The tickets page represents a sort of user account page; we are not talking
+ about a real account, since there is no form of login or similar.
+ What the Dapp does in this case is to retrieve the user's status using
+ the address from which this is currently connected (ex.
+ the Metamask account).
+\end_layout
+
+\begin_layout Standard
+On this page the user can buy a new ticket, can view those already purchased
+ and finally also see the NFTs won up to that moment.
+\end_layout
+
+\begin_layout Standard
+To be more precise:
+\end_layout
+
+\begin_layout Itemize
+The form on the page allows the user to buy a new ticket: it checks live
+ if the numbers played by the user are valid (both the normal numbers and
+ the powerball) and in case of an error, notifies the user that the ticket
+ is not valid.
+ This control at the frontend level avoids any interaction with the backend
+ and with the smart contract, in case of error.
+ If instead the numbers are correct, the BUY function of the smart contract
+ is called.
+ If everything is ok, the user receives feedback informing him that the
+ purchase was successful: this can be done by listening to the TicketBought
+ backend event, which informs the user that the purchase functions were
+ executed with success.
+ If something goes wrong in the backend, it will be caught in the frontend
+ to warn the user.
+ For example when the lottery is closed and the user tries to buy a new
+ ticket: an alert will suggest to the user that he can buy a new ticket
+ only at the start of a new round.
+\end_layout
+
+\begin_layout Itemize
+When the user wins a new NFT, the backend raises an NFTWin event which is
+ captured from the frontend.
+ It checks that the address contained in the event matches to the address
+ of the user connected to the DApp and, if so, the user is informed of this
+ with a message.
+ The list of won NFTs is updated using the description associated with the
+ new NFT (for semplicity, just the class of the NFT).
+ The list of NFTs won is designed to last even when a new round or lottery
+ begins; this is possible because, as described below, the backend has been
+ modified and the KittyNFT class (the Solidity class that represents the
+ NFTs) which is detached from the single instance of the lottery, contains
+ an address mapping of the won NFTs, which is then used to display NFTs
+ won on this page.
+\end_layout
+
+\begin_layout Itemize
+There is a list of tickets bought by the user that is updated at every new
+ purchased ticket, and it is designed to persist for the entire duration
+ of a round.
+\end_layout
+
+\begin_layout Subsubsection
+Manager
+\end_layout
+
+\begin_layout Standard
+This page is reserved for the lottery manager.
+ As mentioned earlier, when the front end of the app loads, it loads a certain
+ type of information or not, based on the account (address) from which the
+ user is connecting.
+ If the account is recognized as that of the lottery manager, the link to
+ this page will appear in the nav bar of the interface (for a common user
+ this will not be visible).
+ This page is used by the lottery manager to interact with the lottery and
+ in particular to call up a whole series of functions present in the back
+ end.
+ For example, the lottery manager can start a new round, draw numbers or
+ close the lottery.
+ More importantly, the lottery manager has the ability to create a new lottery
+ (how, will be discussed later), defining some important parameters such
+ as the number of rounds of the lottery, the parameter K used for the randomness
+ during the drawing and the new ticket price.
+\end_layout
+
+\begin_layout Standard
+Also the lottery manager within this page has the ability to view some important
+ statistics related to the lottery.
+ Particularly:
+\end_layout
+
+\begin_layout Itemize
+It is shown the current lottery balance retrieved from backend.
+\end_layout
+
+\begin_layout Itemize
+There is a Status section that indicates the current status of the lottery
+ (e.g.
+ if the lottery is active or if a round is started or if winning have been
+ extracted...).
+\end_layout
+
+\begin_layout Itemize
+A Buyers section indicates the total numbers of buyers for this round of
+ the lottery.
+\end_layout
+
+\begin_layout Itemize
+A final section where the addresses of all users who have bought a ticket
+ to participate in the current round are indicated, the total number of
+ tickets that each user has bought and the total gwei that each user has
+ spent in this round.
+ This information remains present until the round ends.
+\end_layout
+
+\begin_layout Standard
+Also, whenever the lottery manager interacts with the lottery:
+\end_layout
+
+\begin_layout Itemize
+When a new lottery is started, two transactions are generated to first end
+ the previous lottery (this is because only one lottery can be there at
+ a time), then a second transaction is sent to create a new lottery instance,
+ which is then loaded from the frontend.
+ When a new lottery starts, an event is issued by the backend in order to
+ notify users.
+\end_layout
+
+\begin_layout Itemize
+When a new round starts, all connected users will receive an alert notifying
+ the start of a new round.
+ 
+\end_layout
+
+\begin_layout Itemize
+When it decide to extract winning numbers or close the lottery, a notification
+ through alert is sent to connected users.
+\end_layout
+
+\begin_layout Subsubsection
+General information
+\end_layout
+
+\begin_layout Itemize
+Management functionalities like startNewLottery, startNewRound, drawNumbers,
+ closeLottery can be called only via the Manager DApp interface, available
+ only to the lottery manager.
+ Normal users cannot access this page.
+\end_layout
+
+\begin_layout Itemize
+Dapp has been developed with JS and Web3Js, HTML and CSS, using some tools
+ that allow an easier management of HTML and CSS files.
+ In particular the Home and Tickets page are managed by the app.js file and
+ the Manager interface by the lotteryManager.js file.
+\end_layout
+
+\begin_layout Itemize
+Each JS files embed an App object used to initialize Web3, initialize the
+ contracts (as explained later) and the event listener and finally to render
+ the page and its elements.
+\end_layout
+
+\end_body
+\end_document
