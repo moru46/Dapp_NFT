@@ -176,10 +176,16 @@ The form on the page allows the user to buy a new ticket: it checks live
  is not valid.
  This control at the frontend level avoids any interaction with the backend
  and with the smart contract, in case of error.
- If instead the numbers are correct, the BUY function of the smart contract
- is called.
+ If instead the numbers are correct, the 
+\series bold
+BUY
+\series default
+ function of the smart contract is called.
  If everything is ok, the user receives feedback informing him that the
- purchase was successful: this can be done by listening to the TicketBought
+ purchase was successful: this can be done by listening to the 
+\series bold
+newTicketBought
+\series default
  backend event, which informs the user that the purchase functions were
  executed with success.
  If something goes wrong in the backend, it will be caught in the frontend
@@ -190,19 +196,17 @@ The form on the page allows the user to buy a new ticket: it checks live
 \end_layout
 
 \begin_layout Itemize
-When the user wins a new NFT, the backend raises an NFTWin event which is
- captured from the frontend.
- It checks that the address contained in the event matches to the address
- of the user connected to the DApp and, if so, the user is informed of this
- with a message.
- The list of won NFTs is updated using the description associated with the
+The list of won NFTs is updated using the description associated with the
  new NFT (for semplicity, just the class of the NFT).
  The list of NFTs won is designed to last even when a new round or lottery
  begins; this is possible because, as described below, the backend has been
- modified and the KittyNFT class (the Solidity class that represents the
- NFTs) which is detached from the single instance of the lottery, contains
- an address mapping of the won NFTs, which is then used to display NFTs
- won on this page.
+ modified and the 
+\series bold
+nftKitty
+\series default
+ class (the Solidity class that represents the NFTs) which is detached from
+ the single instance of the lottery, contains an address mapping of the
+ won NFTs, which is then used to display NFTs won on this page.
 \end_layout
 
 \begin_layout Itemize
@@ -230,8 +234,19 @@ This page is reserved for the lottery manager.
  close the lottery.
  More importantly, the lottery manager has the ability to create a new lottery
  (how, will be discussed later), defining some important parameters such
- as the number of rounds of the lottery, the parameter K used for the randomness
- during the drawing and the new ticket price.
+ as the
+\series bold
+ number of rounds 
+\series default
+of the lottery, the 
+\series bold
+parameter K
+\series default
+ used for the randomness during the drawing and the new 
+\series bold
+ticket price
+\series default
+.
 \end_layout
 
 \begin_layout Standard
@@ -241,19 +256,29 @@ Also the lottery manager within this page has the ability to view some important
 \end_layout
 
 \begin_layout Itemize
-It is shown the current lottery balance retrieved from backend.
+It is shown the 
+\series bold
+current lottery balance
+\series default
+ retrieved from backend.
 \end_layout
 
 \begin_layout Itemize
-There is a Status section that indicates the current status of the lottery
- (e.g.
+There is a 
+\series bold
+Status
+\series default
+ section that indicates the current status of the lottery (e.g.
  if the lottery is active or if a round is started or if winning have been
  extracted...).
 \end_layout
 
 \begin_layout Itemize
-A Buyers section indicates the total numbers of buyers for this round of
- the lottery.
+A 
+\series bold
+Buyers
+\series default
+ section indicates the total numbers of buyers for this round of the lottery.
 \end_layout
 
 \begin_layout Itemize
@@ -310,6 +335,121 @@ Dapp has been developed with JS and Web3Js, HTML and CSS, using some tools
 Each JS files embed an App object used to initialize Web3, initialize the
  contracts (as explained later) and the event listener and finally to render
  the page and its elements.
+\end_layout
+
+\begin_layout Section
+Backend Structure
+\end_layout
+
+\begin_layout Standard
+The implementation of the Dapp required several changes to the original
+ smart contract project.
+ Due to the fact that it is necessary to istantiate, on demand, a new istance
+ of the Lottery smart contract, and not rely on a single istance of the
+ Lottery contract, a button has been added which allows you to instantiate
+ a new lottery.
+\end_layout
+
+\begin_layout Standard
+The approach that was used for the development of the Dapp is called 
+\series bold
+Factory Pattern
+\series default
+.
+ 
+\end_layout
+
+\begin_layout Standard
+The main idea of this pattern is to have a contract, hypothetically called
+ "factory", which is responsible for creating other contracts.
+\end_layout
+
+\begin_layout Standard
+In other words we can say that the Factory contract is used to create and
+ deploy child contracts.
+\end_layout
+
+\begin_layout Standard
+Why this patter? The main motivation for this pattern in class-based programming
+ comes from the single-responsibility principle (a class does not need to
+ know how to create instances of other classes), and this pattern provides
+ an abstraction for the constructor.
+\end_layout
+
+\begin_layout Standard
+This type of design pattern is very useful in Soldity and Dapp development:
+ for example if we want to create multiple instances of the same contract
+ (as in this case), this design pattern helps us to keep track of these
+ "child" contracts( in our case, the new Lottery istance) and makes it easier
+ their management.
+\end_layout
+
+\begin_layout Standard
+There are different types of Factory Patterns: in this case the one used
+ is called Normal Factory Pattern, where simply, the contract called LotteryFact
+ory (our "factory"), is implemented with a function that manages the creation
+ of a child contract, by means of the use of the new keyword.
+\end_layout
+
+\begin_layout Standard
+The newLottery() function in the Factory contract takes care of what has
+ just been said, in particular by instantiating a new Lottery contract,
+ with the parameters defined by the lottery operator (so round duration,
+ K and price).
+ In order to fetch the new lottery from the frontend, we use another function,
+ at(), provided by the TruffleContract factory: this function allows to
+ fetch a contract thanks to its address, so that the frontend can report
+ the new instance created.
+ 
+\end_layout
+
+\begin_layout Standard
+In our case it is assumed that only and only one Lottery can be active at
+ a time.
+\end_layout
+
+\begin_layout Standard
+Another major improvement concerns the nftKitty contract used to manage
+ NFTs.
+\end_layout
+
+\begin_layout Standard
+Thanks to the improvements introduced with the factory schema, this has
+ been revisited and is now totally detached from the Lottery and Factory
+ contracts, but above all it has been implemented to be able to work with
+ a configurable Lottery instance.
+ This was obviously necessary due to the changes to which the Lottery contract
+ is subject during its execution, in particular due also to the fact that
+ the NFT contract can no longer assume a static address for the lottery.
+ On the other hand it is then necessary to configure a new instance of the
+ lottery within the nftKitty contract, in order to maintain the specification
+ that only the lottery can invoke the functions of the nftKitty contract.
+ Whenever a new Lottery is deployed, it receives the address of the nftKitty
+ contract to allow communication, and at the same time, the nftKitty contract
+ must also be configured to allow the same thing: all this is done by the
+ Factory which communicates to the contract nftKitty the new lottery address.
+\end_layout
+
+\begin_layout Standard
+However, the factory pattern has some problems in terms of cost and gas
+ spent, which in normal cases is high.
+ In our case, given the simplicity and low complexity of our implementation,
+ the extra costs in terms of gas that are added, compared to the solution
+ with a single contract, can be neglected.
+ From this point of view, various functions in the backend have been reworked
+ and optimized, in order to use little gas anyway.
+\end_layout
+
+\begin_layout Section
+Configuration
+\end_layout
+
+\begin_layout Standard
+Project has been developed using Truffle and Ganache, and has been tested
+ in Ubuntu 22.10.
+ The code is contained in the zip file associated to this submission.
+ Smart contracts are in the contracts/ folder and frontend code is in src/
+ folder.
 \end_layout
 
 \end_body
