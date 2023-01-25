@@ -1,0 +1,24 @@
+{
+  "name": "dapp-morucci",
+  "version": "1.0.0",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "lite-server"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.7.3",
+    "@truffle/contract": "^4.6.11",
+    "@trufflesuite/bigint-buffer": "^1.1.10",
+    "lite-server": "^2.6.1",
+    "openzeppelin-solidity": "4.6.0",
+    "web3": "^1.8.1"
+  },
+  "description": ""
+}
